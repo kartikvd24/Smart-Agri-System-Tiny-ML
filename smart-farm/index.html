@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Farm Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-topline" data-translate="heroTopline">Real-time Farm Intelligence</div>
+        <h1 class="hero-title" data-translate="heroTitle">Smart Farm Dashboard</h1>
+        <p class="hero-subtitle" data-translate="heroSubtitle">
+          Monitor soil nutrition, track livestock well-being, and ask questions via your AI farm assistant. All of your critical data, updated live from the field.
+        </p>
+        <div class="hero-actions">
+          <span class="status-badge pulse-badge" id="sync-status">
+            <span class="badge-text" id="sync-text">Live data sync</span>
+          </span>
+          <div class="language-switcher">
+            <label id="languageSelectLabel" for="languageSelect">Language</label>
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+              <option value="kn">ಕನ್ನಡ</option>
+              <option value="te">తెలుగు</option>
+              <option value="ta">தமிழ்</option>
+            </select>
+          </div>
+          <a class="hero-button interactive-btn" href="chatbot.html" id="chatbot-link">
+            <span class="btn-text" id="chatbot-link-text">Open Chatbot</span>
+            <span class="btn-arrow">→</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="grid">
+          <article class="card soil-card" aria-labelledby="soil-section">
+            <h2 id="soil-section" data-translate="soilHealth">Soil Health Monitoring</h2>
+            <div class="fields-grid">
+              <div class="field-panel interactive-card" data-field="1">
+                <div class="card-glow"></div>
+                <header>
+                  <h3 data-translate="field1">Field 1</h3>
+                  <div class="status-pill pulse-status" id="field1-status">
+                    <span class="status-dot-inline"></span>
+                    <span class="status-text" data-translate="live">Live</span>
+                  </div>
+                </header>
+                <div class="reading interactive-reading" data-metric="ph">
+                  <span data-translate="phLevel">pH Level</span>
+                  <strong id="field1-ph" class="value-animate">--</strong>
+                </div>
+                <div class="reading interactive-reading" data-metric="temp">
+                  <span data-translate="temperature">Temperature</span>
+                  <strong id="field1-temp" class="value-animate">-- °C</strong>
+                </div>
+                <div class="reading interactive-reading" data-metric="npk">
+                  <span data-translate="npkRatio">NPK Ratio</span>
+                  <strong id="field1-npk" class="value-animate">-- / -- / --</strong>
+                </div>
+                <button class="field-action-btn" onclick="showFieldDetails(1)" data-translate="viewDetails">
+                  View Details
+                </button>
+              </div>
+
+              <div class="field-panel interactive-card" data-field="2">
+                <div class="card-glow"></div>
+                <header>
+                  <h3 data-translate="field2">Field 2</h3>
+                  <div class="status-pill pulse-status" id="field2-status">
+                    <span class="status-dot-inline"></span>
+                    <span class="status-text" data-translate="live">Live</span>
+                  </div>
+                </header>
+                <div class="reading interactive-reading" data-metric="ph">
+                  <span data-translate="phLevel">pH Level</span>
+                  <strong id="field2-ph" class="value-animate">--</strong>
+                </div>
+                <div class="reading interactive-reading" data-metric="temp">
+                  <span data-translate="temperature">Temperature</span>
+                  <strong id="field2-temp" class="value-animate">-- °C</strong>
+                </div>
+                <div class="reading interactive-reading" data-metric="npk">
+                  <span data-translate="npkRatio">NPK Ratio</span>
+                  <strong id="field2-npk" class="value-animate">-- / -- / --</strong>
+                </div>
+                <button class="field-action-btn" onclick="showFieldDetails(2)" data-translate="viewDetails">
+                  View Details
+                </button>
+              </div>
+            </div>
+            
+            <!-- Milk pH Display Below Fields -->
+            <div class="milk-stat interactive-stat" id="milk-stat-card" style="margin-top: 24px;">
+              <div class="stat-content">
+                <span class="stat-label" data-translate="milkPh">Milk pH</span>
+                <span id="milk-ph" class="stat-value value-animate">--</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="card livestock-card interactive-card" aria-labelledby="livestock-section">
+            <div class="card-glow"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h2 id="livestock-section" data-translate="livestockTracking" style="margin: 0;">Livestock Tracking</h2>
+              <span class="status-badge pulse-badge" id="geofence-status">
+                <span class="status-dot-inline"></span>
+                <span class="badge-text" id="geofence-text">Geofencing active</span>
+              </span>
+            </div>
+            <div class="livestock-summary">
+              <div class="livestock-info">
+                <p style="margin: 0; color: var(--muted); font-size: 0.9rem;" id="map-description">
+                  <span data-translate="mapDescription">Map updates in real time with geofence alerts. </span>
+                  <span class="interactive-hint" data-translate="mapHint">Click on the map to zoom</span>
+                </p>
+              </div>
+            </div>
+            <div id="map" class="interactive-map" aria-label="Cow geofence map"></div>
+            <div class="map-controls">
+              <button class="map-btn" onclick="findMyLocation(event)" data-translate="myLocation">My Location</button>
+              <button class="map-btn" onclick="goToCowLocation()" data-translate="cowLocation">Cow Location</button>
+              <button class="map-btn" onclick="resetMapView()" data-translate="resetView">Reset View</button>
+              <button class="map-btn" onclick="toggleGeofence()" data-translate="toggleFence">Toggle Fence</button>
+            </div>
+          </article>
+
+        </section>
+      </main>
+
+      <footer data-translate="footer">© Smart Farm — Intelligent agriculture insights powered by live sensors.</footer>
+    </div>
+
+    <script>
+      // ============================================
+      // LANGUAGE MANAGEMENT
+      // ============================================
+      const LANGUAGE_COPY = {
+        en: {
+          heroTopline: "Real-time Farm Intelligence",
+          heroTitle: "Smart Farm Dashboard",
+          heroSubtitle: "Monitor soil nutrition, track livestock well-being, and ask questions via your AI farm assistant. All of your critical data, updated live from the field.",
+          geofenceActive: "Geofencing active",
+          alertOutOfFence: "Alert: Out of fence",
+          liveDataSync: "Live data sync",
+          languageLabel: "Language",
+          openChatbot: "Open Chatbot",
+          soilHealth: "Soil Health Monitoring",
+          field1: "Field 1",
+          field2: "Field 2",
+          live: "Live",
+          optimal: "Optimal",
+          monitor: "Monitor",
+          alert: "Alert",
+          phLevel: "pH Level",
+          temperature: "Temperature",
+          npkRatio: "NPK Ratio",
+          viewDetails: "View Details",
+          milkPh: "Milk pH",
+          livestockTracking: "Livestock Tracking",
+          mapDescription: "Map updates in real time with geofence alerts. ",
+          mapHint: "Click on the map to zoom",
+          myLocation: "My Location",
+          resetView: "Reset View",
+          toggleFence: "Toggle Fence",
+          footer: "© Smart Farm — Intelligent agriculture insights powered by live sensors.",
+          fieldDetails: "Field Details:\n\nThis feature will show detailed analytics, historical data, and recommendations.",
+          cowLocation: "Cow Location",
+          cowLocationButton: "Cow Location",
+          cowInsideFence: "Cow Inside Fence",
+          cowOutsideFence: "Cow Outside Fence!",
+          yourLocation: "Your Location",
+          locationAccuracy: "Accuracy",
+          geofenceAroundLocation: "Geofence around your location (200m radius)"
+        },
+        hi: {
+          heroTopline: "रीयल-टाइम फार्म इंटेलिजेंस",
+          heroTitle: "स्मार्ट फार्म डैशबोर्ड",
+          heroSubtitle: "मिट्टी के पोषण की निगरानी करें, पशुधन की भलाई को ट्रैक करें, और अपने AI फार्म असिस्टेंट के माध्यम से प्रश्न पूछें। आपका सभी महत्वपूर्ण डेटा, मैदान से लाइव अपडेट किया गया।",
+          geofenceActive: "जियोफेंसिंग सक्रिय",
+          alertOutOfFence: "चेतावनी: बाड़ के बाहर",
+          liveDataSync: "लाइव डेटा सिंक",
+          languageLabel: "भाषा",
+          openChatbot: "चैटबॉट खोलें",
+          soilHealth: "मिट्टी स्वास्थ्य निगरानी",
+          field1: "फील्ड 1",
+          field2: "फील्ड 2",
+          live: "लाइव",
+          optimal: "इष्टतम",
+          monitor: "निगरानी",
+          alert: "चेतावनी",
+          phLevel: "pH स्तर",
+          temperature: "तापमान",
+          npkRatio: "NPK अनुपात",
+          viewDetails: "विवरण देखें",
+          milkPh: "दूध pH",
+          livestockTracking: "पशुधन ट्रैकिंग",
+          mapDescription: "मानचित्र जियोफेंस अलर्ट के साथ वास्तविक समय में अपडेट होता है। ",
+          mapHint: "ज़ूम करने के लिए मानचित्र पर क्लिक करें",
+          myLocation: "मेरा स्थान",
+          resetView: "दृश्य रीसेट करें",
+          toggleFence: "बाड़ टॉगल करें",
+          footer: "© स्मार्ट फार्म — लाइव सेंसर द्वारा संचालित बुद्धिमान कृषि अंतर्दृष्टि।",
+          fieldDetails: "फील्ड विवरण:\n\nयह सुविधा विस्तृत विश्लेषण, ऐतिहासिक डेटा और सिफारिशें दिखाएगी।",
+          cowLocation: "गाय का स्थान",
+          cowLocationButton: "गाय का स्थान",
+          cowInsideFence: "गाय बाड़ के अंदर",
+          cowOutsideFence: "गाय बाड़ के बाहर!",
+          yourLocation: "आपका स्थान",
+          locationAccuracy: "सटीकता",
+          geofenceAroundLocation: "आपके स्थान के चारों ओर जियोफेंस (200m त्रिज्या)"
+        },
+        kn: {
+          heroTopline: "ನೈಜ-ಸಮಯ ಫಾರ್ಮ್ ಬುದ್ಧಿವಂತಿಕೆ",
+          heroTitle: "ಸ್ಮಾರ್ಟ್ ಫಾರ್ಮ್ ಡ್ಯಾಶ್ಬೋರ್ಡ್",
+          heroSubtitle: "ಮಣ್ಣಿನ ಪೋಷಣೆಯನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ, ಜಾನುವಾರು ಯೋಗಕ್ಷೇಮವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ AI ಫಾರ್ಮ್ ಸಹಾಯಕದ ಮೂಲಕ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಿ. ನಿಮ್ಮ ಎಲ್ಲಾ ನಿರ್ಣಾಯಕ ಡೇಟಾ, ಕ್ಷೇತ್ರದಿಂದ ನೇರವಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ।",
+          geofenceActive: "ಜಿಯೋಫೆನ್ಸಿಂಗ್ ಸಕ್ರಿಯ",
+          alertOutOfFence: "ಎಚ್ಚರಿಕೆ: ಬೇಲಿಯ ಹೊರಗೆ",
+          liveDataSync: "ನೇರ ಡೇಟಾ ಸಿಂಕ್",
+          languageLabel: "ಭಾಷೆ",
+          openChatbot: "ಚಾಟ್ಬಾಟ್ ತೆರೆಯಿರಿ",
+          soilHealth: "ಮಣ್ಣು ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
+          field1: "ಕ್ಷೇತ್ರ 1",
+          field2: "ಕ್ಷೇತ್ರ 2",
+          live: "ನೇರ",
+          optimal: "ಸೂಕ್ತ",
+          monitor: "ಮೇಲ್ವಿಚಾರಣೆ",
+          alert: "ಎಚ್ಚರಿಕೆ",
+          phLevel: "pH ಮಟ್ಟ",
+          temperature: "ತಾಪಮಾನ",
+          npkRatio: "NPK ಅನುಪಾತ",
+          viewDetails: "ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+          milkPh: "ಹಾಲು pH",
+          livestockTracking: "ಜಾನುವಾರು ಟ್ರ್ಯಾಕಿಂಗ್",
+          mapDescription: "ನಕ್ಷೆಯು ಜಿಯೋಫೆನ್ಸ್ ಎಚ್ಚರಿಕೆಗಳೊಂದಿಗೆ ನೈಜ-ಸಮಯದಲ್ಲಿ ನವೀಕರಿಸುತ್ತದೆ। ",
+          mapHint: "ಜೂಮ್ ಮಾಡಲು ನಕ್ಷೆಯ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ",
+          myLocation: "ನನ್ನ ಸ್ಥಳ",
+          resetView: "ನೋಟವನ್ನು ಮರುಹೊಂದಿಸಿ",
+          toggleFence: "ಬೇಲಿಯನ್ನು ಟಾಗಲ್ ಮಾಡಿ",
+          footer: "© ಸ್ಮಾರ್ಟ್ ಫಾರ್ಮ್ — ನೇರ ಸಂವೇದಕಗಳಿಂದ ಚಾಲಿತ ಬುದ್ಧಿವಂತ ಕೃಷಿ ಒಳನೋಟಗಳು।",
+          fieldDetails: "ಕ್ಷೇತ್ರ ವಿವರಗಳು:\n\nಈ ವೈಶಿಷ್ಟ್ಯವು ವಿವರವಾದ ವಿಶ್ಲೇಷಣೆ, ಐತಿಹಾಸಿಕ ಡೇಟಾ ಮತ್ತು ಶಿಫಾರಸುಗಳನ್ನು ತೋರಿಸುತ್ತದೆ।",
+          cowLocation: "ಹಸುವಿನ ಸ್ಥಳ",
+          cowLocationButton: "ಹಸುವಿನ ಸ್ಥಳ",
+          cowInsideFence: "ಹಸು ಬೇಲಿಯೊಳಗೆ",
+          cowOutsideFence: "ಹಸು ಬೇಲಿಯ ಹೊರಗೆ!",
+          yourLocation: "ನಿಮ್ಮ ಸ್ಥಳ",
+          locationAccuracy: "ನಿಖರತೆ",
+          geofenceAroundLocation: "ನಿಮ್ಮ ಸ್ಥಳದ ಸುತ್ತ ಜಿಯೋಫೆನ್ಸ್ (200m ತ್ರಿಜ್ಯ)"
+        },
+        te: {
+          heroTopline: "నిజ-సమయం ఫార్మ్ ఇంటెలిజెన్స్",
+          heroTitle: "స్మార్ట్ ఫార్మ్ డాష్బోర్డ్",
+          heroSubtitle: "మట్టి పోషకాలను పర్యవేక్షించండి, పశువుల శ్రేయస్సును ట్రాక్ చేయండి మరియు మీ AI ఫార్మ్ అసిస్టెంట్ ద్వారా ప్రశ్నలు అడగండి. మీ అన్ని కీలకమైన డేటా, క్షేత్రం నుండి నేరుగా నవీకరించబడింది.",
+          geofenceActive: "జియోఫెన్సింగ్ సక్రియం",
+          alertOutOfFence: "హెచ్చరిక: కంచె వెలుపల",
+          liveDataSync: "నేరుగా డేటా సింక్",
+          languageLabel: "భాష",
+          openChatbot: "చాట్బాట్ తెరవండి",
+          soilHealth: "మట్టి ఆరోగ్య పర్యవేక్షణ",
+          field1: "ఫీల్డ్ 1",
+          field2: "ఫీల్డ్ 2",
+          live: "నేరుగా",
+          optimal: "సరైన",
+          monitor: "పర్యవేక్షణ",
+          alert: "హెచ్చరిక",
+          phLevel: "pH స్థాయి",
+          temperature: "ఉష్ణోగ్రత",
+          npkRatio: "NPK నిష్పత్తి",
+          viewDetails: "వివరాలను వీక్షించండి",
+          milkPh: "పాలు pH",
+          livestockTracking: "పశువుల ట్రాకింగ్",
+          mapDescription: "నక్షా జియోఫెన్స్ హెచ్చరికలతో నిజ-సమయంలో నవీకరిస్తుంది। ",
+          mapHint: "జూమ్ చేయడానికి నక్షా మీద క్లిక్ చేయండి",
+          myLocation: "నా స్థానం",
+          resetView: "వీక్షణను రీసెట్ చేయండి",
+          toggleFence: "కంచెను టాగుల్ చేయండి",
+          footer: "© స్మార్ట్ ఫార్మ్ — నేరుగా సెన్సార్ల ద్వారా నడిచే తెలివైన వ్యవసాయ అంతర్దృష్టులు।",
+          fieldDetails: "ఫీల్డ్ వివరాలు:\n\nఈ ఫీచర్ వివరణాత్మక విశ్లేషణ, చారిత్రక డేటా మరియు సిఫార్సులను చూపుతుంది।",
+          cowLocation: "ఆవు స్థానం",
+          cowLocationButton: "ఆవు స్థానం",
+          cowInsideFence: "ఆవు కంచె లోపల",
+          cowOutsideFence: "ఆవు కంచె వెలుపల!",
+          yourLocation: "మీ స్థానం",
+          locationAccuracy: "ఖచ్చితత్వం",
+          geofenceAroundLocation: "మీ స్థానం చుట్టూ జియోఫెన్స్ (200m వ్యాసార్థం)"
+        },
+        ta: {
+          heroTopline: "நிகழ்நேர பண்ணை நுண்ணறிவு",
+          heroTitle: "ஸ்மார்ட் பண்ணை டாஷ்போர்டு",
+          heroSubtitle: "மண் ஊட்டச்சத்தை கண்காணிக்கவும், கால்நடை நல்வாழ்வை கண்காணிக்கவும், உங்கள் AI பண்ணை உதவியாளர் மூலம் கேள்விகளைக் கேளுங்கள். உங்கள் அனைத்து முக்கிய தரவுகளும், வயலில் இருந்து நேரடியாக புதுப்பிக்கப்பட்டது.",
+          geofenceActive: "ஜியோஃபென்சிங் செயலில்",
+          alertOutOfFence: "எச்சரிக்கை: வேலியின் வெளியே",
+          liveDataSync: "நேரடி தரவு ஒத்திசைவு",
+          languageLabel: "மொழி",
+          openChatbot: "சாட்பாட் திறக்க",
+          soilHealth: "மண் ஆரோக்கிய கண்காணிப்பு",
+          field1: "வயல் 1",
+          field2: "வயல் 2",
+          live: "நேரடி",
+          optimal: "உகந்த",
+          monitor: "கண்காணிப்பு",
+          alert: "எச்சரிக்கை",
+          phLevel: "pH நிலை",
+          temperature: "வெப்பநிலை",
+          npkRatio: "NPK விகிதம்",
+          viewDetails: "விவரங்களைக் காண்க",
+          milkPh: "பால் pH",
+          livestockTracking: "கால்நடை கண்காணிப்பு",
+          mapDescription: "வரைபடம் ஜியோஃபென்ஸ் எச்சரிக்கைகளுடன் நிகழ்நேரத்தில் புதுப்பிக்கப்படுகிறது। ",
+          mapHint: "ஜூம் செய்ய வரைபடத்தில் கிளிக் செய்யவும்",
+          myLocation: "எனது இருப்பிடம்",
+          resetView: "காட்சியை மீட்டமை",
+          toggleFence: "வேலியை மாற்று",
+          footer: "© ஸ்மார்ட் பண்ணை — நேரடி சென்சார்களால் இயக்கப்படும் அறிவார்ந்த விவசாய நுண்ணறிவுகள்।",
+          fieldDetails: "வயல் விவரங்கள்:\n\nஇந்த அம்சம் விரிவான பகுப்பாய்வு, வரலாற்று தரவு மற்றும் பரிந்துரைகளைக் காட்டும்।",
+          cowLocation: "பசுவின் இருப்பிடம்",
+          cowLocationButton: "பசுவின் இருப்பிடம்",
+          cowInsideFence: "பசு வேலிக்குள்",
+          cowOutsideFence: "பசு வேலிக்கு வெளியே!",
+          yourLocation: "உங்கள் இருப்பிடம்",
+          locationAccuracy: "துல்லியம்",
+          geofenceAroundLocation: "உங்கள் இருப்பிடத்தைச் சுற்றி ஜியோஃபென்ஸ் (200m ஆரம்)"
+        }
+      };
+
+      // Get saved language or default to English
+      let currentLanguage = localStorage.getItem('smartFarmLanguage') || 'en';
+      
+      const languageSelect = document.getElementById("languageSelect");
+      const languageLabel = document.getElementById("languageSelectLabel");
+      
+      // Set initial language
+      if (languageSelect) {
+        languageSelect.value = currentLanguage;
+      }
+
+      function getCopy(lang = currentLanguage) {
+        return LANGUAGE_COPY[lang] || LANGUAGE_COPY.en;
+      }
+
+      function updateLanguageUI() {
+        const copy = getCopy();
+        
+        // Update all elements with data-translate attribute
+        document.querySelectorAll('[data-translate]').forEach(element => {
+          const key = element.getAttribute('data-translate');
+          if (copy[key]) {
+            if (element.tagName === 'INPUT' || element.tagName === 'BUTTON') {
+              element.textContent = copy[key];
+            } else {
+              element.textContent = copy[key];
+            }
+          }
+        });
+
+        // Update specific elements
+        if (languageLabel) languageLabel.textContent = copy.languageLabel;
+        if (document.getElementById('chatbot-link-text')) {
+          document.getElementById('chatbot-link-text').textContent = copy.openChatbot;
+        }
+        if (document.getElementById('geofence-text')) {
+          document.getElementById('geofence-text').textContent = copy.geofenceActive;
+        }
+        if (document.getElementById('sync-text')) {
+          document.getElementById('sync-text').textContent = copy.liveDataSync;
+        }
+
+        // Update map description (has nested span)
+        const mapDesc = document.querySelector('#map-description [data-translate="mapDescription"]');
+        if (mapDesc) {
+          mapDesc.textContent = copy.mapDescription;
+        }
+
+        // Update status texts
+        const statusTexts = document.querySelectorAll('.status-text');
+        statusTexts.forEach(el => {
+          const status = el.textContent.trim().toLowerCase();
+          if (status === 'optimal' || status === 'इष्टतम' || status === 'ಸೂಕ್ತ' || status === 'సరైన' || status === 'உகந்த') {
+            el.textContent = copy.optimal;
+          } else if (status === 'monitor' || status === 'निगरानी' || status === 'ಮೇಲ್ವಿಚಾರಣೆ' || status === 'పర్యవేక్షణ' || status === 'கண்காணிப்பு') {
+            el.textContent = copy.monitor;
+          } else if (status === 'alert' || status === 'चेतावनी' || status === 'ಎಚ್ಚರಿಕೆ' || status === 'హెచ్చరిక' || status === 'எச்சரிக்கை') {
+            el.textContent = copy.alert;
+          } else {
+            el.textContent = copy.live;
+          }
+        });
+
+        // Update map button texts
+        const mapButtons = document.querySelectorAll('.map-btn');
+        if (mapButtons.length >= 4) {
+          mapButtons[0].textContent = copy.myLocation;
+          mapButtons[1].textContent = copy.cowLocationButton;
+          mapButtons[2].textContent = copy.resetView;
+          mapButtons[3].textContent = copy.toggleFence;
+        }
+      }
+
+      // Language change handler
+      if (languageSelect) {
+        languageSelect.addEventListener("change", () => {
+          currentLanguage = languageSelect.value;
+          localStorage.setItem('smartFarmLanguage', currentLanguage);
+          updateLanguageUI();
+        });
+      }
+
+      // Initialize UI on page load
+      updateLanguageUI();
+
+      // ============================================
+      // FIREBASE CONFIGURATION
+      // ============================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyBMS_ULVIIz2q-nmPbQrgLk1Pvqa3NyvSQ",
+        authDomain: "smart-farm-40c57.firebaseapp.com",
+        databaseURL: "https://smart-farm-40c57-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "smart-farm-40c57",
+        storageBucket: "smart-farm-40c57.firebasestorage.app",
+        messagingSenderId: "500363826282",
+        appId: "1:500363826282:web:8b48e070c11285c744a613",
+        measurementId: "G-9F6WVSJH5H"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      let latestField1 = {};
+
+      db.ref("farms/farm-001/soilNodes/soil-node-01/latest").on("value", (snap) => {
+        const d = snap.val();
+        if (!d) return;
+        latestField1 = d;
+        animateValueUpdate("field1-ph", d.ph ?? "--");
+        animateValueUpdate("field1-temp", d.temp_c ? `${d.temp_c} °C` : "-- °C");
+        animateValueUpdate("field1-npk", d.n && d.p && d.k ? `${d.n} / ${d.p} / ${d.k}` : "-- / -- / --");
+        updateFieldStatus(1, d);
+      });
+
+      db.ref("farms/farm-001/soilNodes/soil-node-02/latest").on("value", (snap) => {
+        const d = snap.val();
+        if (!d) return;
+        animateValueUpdate("field2-ph", d.ph ?? "--");
+        animateValueUpdate("field2-temp", d.temp_c ? `${d.temp_c} °C` : "-- °C");
+        animateValueUpdate("field2-npk", d.n && d.p && d.k ? `${d.n} / ${d.p} / ${d.k}` : "-- / -- / --");
+        updateFieldStatus(2, d);
+      });
+
+      const map = L.map("map", { zoomControl: false }).setView([12.9716, 77.5946], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+
+      // Function to maintain consistent icon sizes on zoom
+      function maintainIconSizes() {
+        // Fix cow marker icon size
+        if (cowMarker && cowMarker._icon) {
+          const iconDiv = cowMarker._icon.querySelector('div');
+          if (iconDiv) {
+            iconDiv.style.width = '28px';
+            iconDiv.style.height = '28px';
+            iconDiv.style.minWidth = '28px';
+            iconDiv.style.minHeight = '28px';
+            iconDiv.style.maxWidth = '28px';
+            iconDiv.style.maxHeight = '28px';
+            iconDiv.style.transform = '';
+          }
+        }
+        // Fix user location marker icon size
+        if (userLocationMarker && userLocationMarker._icon) {
+          const iconDiv = userLocationMarker._icon.querySelector('div');
+          if (iconDiv) {
+            iconDiv.style.width = '28px';
+            iconDiv.style.height = '28px';
+            iconDiv.style.minWidth = '28px';
+            iconDiv.style.minHeight = '28px';
+            iconDiv.style.maxWidth = '28px';
+            iconDiv.style.maxHeight = '28px';
+            iconDiv.style.transform = '';
+          }
+        }
+      }
+
+      // Maintain icon sizes on zoom
+      map.on('zoom', maintainIconSizes);
+      map.on('zoomend', maintainIconSizes);
+
+      // Farm center coordinates (default)
+      const farmCenter = [12.9716, 77.5946];
+      let currentFenceCenter = farmCenter; // Can be updated to user location
+      
+      const fence = L.circle(farmCenter, {
+        radius: 200,
+        color: "#fb7185",
+        weight: 2,
+        fillOpacity: 0.05
+      }).addTo(map);
+      let cowMarker = null;
+      let userLocationMarker = null;
+      let userFence = null; // Fence centered on user location
+
+      // Helper function to create cow icon
+      function createCowIcon() {
+        return L.divIcon({
+          className: 'cow-marker',
+          html: `
+            <div style="
+              background: #22c55e;
+              border: 2px solid white;
+              border-radius: 50%;
+              width: 28px;
+              height: 28px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              font-size: 16px;
+              line-height: 1;
+              position: absolute;
+              top: 0;
+              left: 0;
+            ">
+              🐄
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+          popupAnchor: [0, -14],
+          className: 'cow-marker-icon'
+        });
+      }
+
+      // Helper function to create user location icon
+      function createUserLocationIcon() {
+        return L.divIcon({
+          className: 'user-location-marker',
+          html: `
+            <div style="
+              background: #3b82f6;
+              border: 2px solid white;
+              border-radius: 50%;
+              width: 28px;
+              height: 28px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              font-size: 16px;
+              line-height: 1;
+              position: absolute;
+              top: 0;
+              left: 0;
+            ">
+              📍
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+          popupAnchor: [0, -14],
+          className: 'user-location-marker-icon'
+        });
+      }
+
+      db.ref("farms/farm-001/animals/cow-001/latest").on("value", (snap) => {
+        const d = snap.val();
+        if (!d) return;
+        animateValueUpdate("milk-ph", d.milkPh ?? "--");
+        const coords = [d.lat ?? 0, d.lng ?? 0];
+        if (cowMarker) {
+          cowMarker.setLatLng(coords);
+        } else {
+          const copy = getCopy();
+          cowMarker = L.marker(coords, {
+            riseOnHover: true,
+            icon: createCowIcon(),
+            zIndexOffset: 1000
+          }).addTo(map).bindPopup(copy.cowLocation);
+        }
+        const distance = map.distance([12.9716, 77.5946], coords);
+        const copy = getCopy();
+        if (distance > 200) {
+          cowMarker.bindPopup(copy.cowOutsideFence).openPopup();
+          fence.setStyle({ color: "#f97316", fillOpacity: 0.15 });
+          document.getElementById("geofence-status").classList.add("alert");
+          if (document.getElementById("geofence-text")) {
+            document.getElementById("geofence-text").textContent = copy.alertOutOfFence;
+          }
+        } else {
+          cowMarker.bindPopup(copy.cowInsideFence).openPopup();
+          fence.setStyle({ color: "#fb7185", fillOpacity: 0.05 });
+          document.getElementById("geofence-status").classList.remove("alert");
+          if (document.getElementById("geofence-text")) {
+            document.getElementById("geofence-text").textContent = copy.geofenceActive;
+          }
+        }
+      });
+
+      // Interactive functions
+      function animateValueUpdate(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        element.classList.add("value-update");
+        setTimeout(() => {
+          element.textContent = elementId === "milk-ph" ? newValue : newValue;
+          element.classList.remove("value-update");
+          element.classList.add("value-updated");
+          setTimeout(() => element.classList.remove("value-updated"), 600);
+        }, 150);
+      }
+
+      function updateFieldStatus(fieldNum, data) {
+        const statusEl = document.getElementById(`field${fieldNum}-status`);
+        if (!statusEl) return;
+        const ph = parseFloat(data.ph);
+        const temp = parseFloat(data.temp_c);
+        
+        if (ph && temp) {
+          if (ph >= 6.0 && ph <= 7.0 && temp >= 20 && temp <= 30) {
+            statusEl.classList.add("status-good");
+            statusEl.classList.remove("status-warning", "status-bad");
+            statusEl.querySelector(".status-text").textContent = "Optimal";
+          } else if (ph >= 5.5 && ph <= 7.5 && temp >= 15 && temp <= 35) {
+            statusEl.classList.add("status-warning");
+            statusEl.classList.remove("status-good", "status-bad");
+            statusEl.querySelector(".status-text").textContent = "Monitor";
+          } else {
+            statusEl.classList.add("status-bad");
+            statusEl.classList.remove("status-good", "status-warning");
+            statusEl.querySelector(".status-text").textContent = "Alert";
+          }
+        }
+      }
+
+      function showFieldDetails(fieldNum) {
+        const copy = getCopy();
+        const fieldName = fieldNum === 1 ? copy.field1 : copy.field2;
+        alert(`${fieldName} ${copy.fieldDetails}`);
+      }
+
+      // Function to center map on cow location
+      function goToCowLocation() {
+        if (!cowMarker) {
+          const copy = getCopy();
+          alert(copy.cowLocation + " not available yet. Waiting for data...");
+          return;
+        }
+        
+        const cowCoords = cowMarker.getLatLng();
+        map.setView(cowCoords, 16);
+        cowMarker.openPopup();
+        
+        // Highlight the cow marker briefly
+        const iconElement = cowMarker._icon;
+        if (iconElement) {
+          iconElement.style.transform = 'scale(1.3)';
+          iconElement.style.transition = 'transform 0.3s ease';
+          setTimeout(() => {
+            iconElement.style.transform = 'scale(1)';
+          }, 500);
+        }
+      }
+
+      function resetMapView() {
+        map.setView([12.9716, 77.5946], 15);
+        map.eachLayer(layer => {
+          if (layer instanceof L.Marker && layer !== userLocationMarker) {
+            layer.openPopup();
+          }
+        });
+        // Reset to farm fence
+        useUserLocationFence = false;
+        currentFenceCenter = farmCenter;
+        
+        // Remove user location marker and fence when resetting
+        if (userLocationMarker) {
+          if (userLocationMarker.accuracyCircle) {
+            map.removeLayer(userLocationMarker.accuracyCircle);
+          }
+          map.removeLayer(userLocationMarker);
+          userLocationMarker = null;
+        }
+        if (userFence) {
+          map.removeLayer(userFence);
+          userFence = null;
+        }
+        
+        // Restore farm fence if it was visible
+        if (geofenceVisible && !map.hasLayer(fence)) {
+          fence.addTo(map);
+        }
+      }
+
+      let geofenceVisible = true;
+      let useUserLocationFence = false;
+      
+      function toggleGeofence() {
+        geofenceVisible = !geofenceVisible;
+        
+        if (geofenceVisible) {
+          // If user location is available, use that; otherwise use farm center
+          if (userLocationMarker && useUserLocationFence) {
+            const userLatLng = userLocationMarker.getLatLng();
+            if (userFence) {
+              map.removeLayer(userFence);
+            }
+              const copy = getCopy();
+              userFence = L.circle([userLatLng.lat, userLatLng.lng], {
+                radius: 200,
+                color: "#38bdf8",
+                weight: 2,
+                fillOpacity: 0.1,
+                dashArray: '10, 5'
+              }).addTo(map);
+              userFence.bindPopup(copy.geofenceAroundLocation);
+              // Hide farm fence if user fence is active
+              if (map.hasLayer(fence)) {
+                map.removeLayer(fence);
+              }
+          } else {
+            // Use farm fence
+            if (userFence) {
+              map.removeLayer(userFence);
+            }
+            if (!map.hasLayer(fence)) {
+              fence.addTo(map);
+            }
+          }
+        } else {
+          // Hide all fences
+          if (map.hasLayer(fence)) {
+            map.removeLayer(fence);
+          }
+          if (userFence && map.hasLayer(userFence)) {
+            map.removeLayer(userFence);
+          }
+        }
+      }
+
+      // Add click interaction to map
+      map.on('click', function(e) {
+        const popup = L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`Coordinates: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`)
+          .openOn(map);
+      });
+
+      // Find user's current location using GPS
+      function findMyLocation(e) {
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported by your browser.");
+          return;
+        }
+
+        // Show loading state
+        const btn = e ? e.target : event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "Locating...";
+        btn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            // Remove existing user location marker if any
+            if (userLocationMarker) {
+              if (userLocationMarker.accuracyCircle) {
+                map.removeLayer(userLocationMarker.accuracyCircle);
+              }
+              map.removeLayer(userLocationMarker);
+              userLocationMarker = null;
+            }
+
+            // Create custom icon for user location
+            const userIcon = createUserLocationIcon();
+
+            // Add marker for user location
+            const copy = getCopy();
+            userLocationMarker = L.marker([lat, lng], { 
+              icon: userIcon,
+              zIndexOffset: 1001
+            })
+              .addTo(map)
+              .bindPopup(`${copy.yourLocation}<br>${copy.locationAccuracy}: ${Math.round(accuracy)}m<br><br>${copy.geofenceAroundLocation}`)
+              .openPopup();
+            
+            // Maintain icon size
+            maintainIconSizes();
+
+            // Center map on user location
+            map.setView([lat, lng], 16);
+
+            // Add accuracy circle
+            const accuracyCircle = L.circle([lat, lng], {
+              radius: accuracy,
+              color: "#38bdf8",
+              weight: 2,
+              fillOpacity: 0.1,
+              dashArray: '5, 5'
+            }).addTo(map);
+
+            // Store reference to remove later
+            userLocationMarker.accuracyCircle = accuracyCircle;
+            
+            // Update fence center to user location
+            currentFenceCenter = [lat, lng];
+            useUserLocationFence = true;
+            
+            // If fence is visible, update it to user location
+            if (geofenceVisible) {
+              if (map.hasLayer(fence)) {
+                map.removeLayer(fence);
+              }
+              if (userFence) {
+                map.removeLayer(userFence);
+              }
+              const copy = getCopy();
+              userFence = L.circle([lat, lng], {
+                radius: 200,
+                color: "#38bdf8",
+                weight: 2,
+                fillOpacity: 0.1,
+                dashArray: '10, 5'
+              }).addTo(map);
+              userFence.bindPopup(copy.geofenceAroundLocation);
+            }
+
+            // Reset button
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            // Location found successfully
+          },
+          function(error) {
+            // Handle errors
+            let errorMsg = "Unable to get your location. ";
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMsg += "Please allow location access in your browser settings.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMsg += "Location information is unavailable.";
+                break;
+              case error.TIMEOUT:
+                errorMsg += "Location request timed out.";
+                break;
+              default:
+                errorMsg += "An unknown error occurred.";
+                break;
+            }
+            alert(errorMsg);
+            
+            // Reset button
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      }
+
+    </script>
+  </body>
+</html>
+

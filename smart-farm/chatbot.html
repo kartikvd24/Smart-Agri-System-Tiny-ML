@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Farm Assistant</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-topline">Smart Farm Assistant</div>
+        <h1 class="hero-title">Chat With Your Farm AI</h1>
+        <p class="hero-subtitle">
+          Ask about soil status, livestock health, or general farm management tips. The assistant blends live data with Gemini answers.
+        </p>
+        <div class="assistant-status">
+          <span class="status-dot online"></span>
+          <span id="assistantStatusText">Assistant Ready</span>
+        </div>
+        <div class="hero-actions">
+          <a class="hero-button" href="index.html">Back to Dashboard</a>
+          <div class="language-switcher">
+            <label id="languageSelectLabel" for="languageSelect">Language</label>
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+              <option value="kn">ಕನ್ನಡ</option>
+              <option value="te">తెలుగు</option>
+              <option value="ta">தமிழ்</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="grid">
+          <article class="card chat-card chat-page" aria-labelledby="chat-section">
+            <header>
+              <h2 id="chat-section">Farm Chatbot</h2>
+              <p>
+                Ask for specific field readings, livestock insights, or quick advice. Try “Field 1 status” or “Any tips for cow nutrition?”.
+              </p>
+              <div class="chat-suggestions">
+                <button type="button" data-prompt="Field 1 status">Field 1 status</button>
+                <button type="button" data-prompt="Where is the cow right now?">Where is the cow?</button>
+                <button type="button" data-prompt="Give me tips for soil nutrition">Soil nutrition tips</button>
+              </div>
+            </header>
+            <div id="messages" aria-live="polite"></div>
+            <div class="chat-input-row">
+              <input
+                type="text"
+                id="userInput"
+                placeholder="Ask about soil nutrients, cow location, or farming advice..."
+                aria-label="Ask the smart farm assistant"
+                autocomplete="off"
+              />
+              <button type="button" id="sendButton" onclick="sendMessage()">Send Message</button>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Backend API configuration
+      const BACKEND_URL = "http://localhost:5000";
+      const CHAT_API_URL = `${BACKEND_URL}/api/chat`;
+      const HEALTH_API_URL = `${BACKEND_URL}/api/health`;
+      const FARM_DATA_API_URL = `${BACKEND_URL}/api/farm-data`;
+
+      const GREETINGS = ["hi", "hello", "hey", "good morning", "good evening"];
+
+      const LANGUAGE_COPY = {
+        en: {
+          youLabel: "You",
+          botLabel: "Bot",
+          sendButton: "Send Message",
+          placeholder: "Ask about soil nutrients, cow location, or farming advice...",
+          suggestions: ["Field 1 status", "Where is the cow right now?", "Give me tips for soil nutrition"],
+          statusText: "Assistant Ready",
+          languageLabel: "Language",
+          languageChangedMessage: "Language preferences updated. Let's continue in English."
+        },
+        hi: {
+          youLabel: "आप",
+          botLabel: "बॉट",
+          sendButton: "संदेश भेजें",
+          placeholder: "मिट्टी के पोषक, गाय का स्थान या खेती सलाह पूछें...",
+          suggestions: ["फील्ड 1 स्थिति", "गाय अभी कहाँ है?", "मृदा पोषण सुझाव"],
+          statusText: "सहायक तैयार",
+          languageLabel: "भाषा",
+          languageChangedMessage: "भाषा सेटिंग अपडेट हो गई है। अब हम हिंदी में बात करेंगे।"
+        },
+        kn: {
+          youLabel: "ನೀವು",
+          botLabel: "ಬಾಟ್",
+          sendButton: "ಸಂದೇಶ ಕಳುಹಿಸಿ",
+          placeholder: "ಮಣ್ಣಿನ ಪೋಷಕಾಂಶ, ಹಸು ಇರುವ ಸ್ಥಳ ಅಥವಾ ಕೃಷಿ ಸಲಹೆ ಕೇಳಿ...",
+          suggestions: ["ಕ್ಷೇತ್ರ 1 ಸ್ಥಿತಿ", "ಈಗ ಹಸು ಎಲ್ಲಿದೆ?", "ಮಣ್ಣು ಪೋಷಕ ಸಲಹೆಗಳು"],
+          statusText: "ಸಹಾಯಕ ಸಿದ್ಧ",
+          languageLabel: "ಭಾಷೆ",
+          languageChangedMessage: "ಭಾಷಾ ಆಯ್ಕೆಗಳು ನವೀಕರಿಸಲ್ಪಟ್ಟಿವೆ. ಈಗ ನಾವು ಕನ್ನಡದಲ್ಲಿ ಮುಂದುವರಿಯೋಣ."
+        },
+        te: {
+          youLabel: "మీరు",
+          botLabel: "బాట్",
+          sendButton: "సందేశాన్ని పంపండి",
+          placeholder: "మట్టి పోషకాలు, ఆవు స్థానం లేదా వ్యవసాయ సలహా అడగండి...",
+          suggestions: ["ఫీల్డ్ 1 స్థితి", "ఇప్పుడు ఆవు ఎక్కడ ఉంది?", "మట్టి పోషణ సూచనలు"],
+          statusText: "సహాయకుడు సిద్ధంగా ఉన్నాడు",
+          languageLabel: "భాష",
+          languageChangedMessage: "భాష ప్రాధాన్యతలు నవీకరించబడ్డాయి. ఇప్పుడు తెలుగులో కొనసాగుదాం."
+        },
+        ta: {
+          youLabel: "நீங்கள்",
+          botLabel: "பாட்",
+          sendButton: "செய்தி அனுப்பு",
+          placeholder: "மண் ஊட்டச்சத்து, பசுவின் இருப்பிடம் அல்லது விவசாய ஆலோசனை கேளுங்கள்...",
+          suggestions: ["பயிர் 1 நிலை", "இப்போது பசு எங்கு உள்ளது?", "மண் ஊட்டச்சத்து குறிப்புகள்"],
+          statusText: "உதவியாளர் தயார்",
+          languageLabel: "மொழி",
+          languageChangedMessage: "மொழி விருப்பங்கள் புதுப்பிக்கப்பட்டன. இனி தமிழில் தொடர்வோம்."
+        }
+      };
+
+      const languageSelect = document.getElementById("languageSelect");
+      const languageLabel = document.getElementById("languageSelectLabel");
+      const assistantStatusText = document.getElementById("assistantStatusText");
+      const userInput = document.getElementById("userInput");
+      const sendButton = document.getElementById("sendButton");
+      const messagesDiv = document.getElementById("messages");
+      const suggestionButtons = Array.from(document.querySelectorAll(".chat-suggestions button"));
+
+      // Get saved language or default to English
+      let currentLanguage = localStorage.getItem('smartFarmLanguage') || 'en';
+      
+      // Set initial language in selector
+      if (languageSelect) {
+        languageSelect.value = currentLanguage;
+      }
+
+      function getCopy(lang = currentLanguage) {
+        return LANGUAGE_COPY[lang] || LANGUAGE_COPY.en;
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        })[char]);
+      }
+
+      // Translation removed - Gemini API will handle multilingual responses
+      // All messages are sent directly to Gemini in the user's language
+
+      function scrollToBottom() {
+        // Use requestAnimationFrame for smooth scrolling
+        requestAnimationFrame(() => {
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+      }
+
+      function appendUserMessage(text) {
+        const copy = getCopy();
+        const safeHtml = escapeHtml(text).replace(/\n/g, "<br>");
+        messagesDiv.innerHTML += `<div class="msg user"><strong>${copy.youLabel}:</strong> ${safeHtml}</div>`;
+        scrollToBottom();
+      }
+
+      function showLoadingIndicator() {
+        const loadingId = "loading-" + Date.now();
+        const copy = getCopy();
+        messagesDiv.innerHTML += `<div class="msg bot loading" id="${loadingId}"><strong>${copy.botLabel}:</strong> <span class="loading-dots">...</span></div>`;
+        scrollToBottom();
+        return loadingId;
+      }
+
+      function removeLoadingIndicator(loadingId) {
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) {
+          loadingEl.remove();
+        }
+      }
+
+      async function appendBotMessage(text, { translate = false } = {}) {
+        const copy = getCopy();
+        // Clean and format the text
+        const cleanText = text.trim();
+        if (!cleanText) return;
+        
+        const safeHtml = escapeHtml(cleanText)
+          .replace(/\n\n+/g, "</p><p>")  // Double newlines become paragraphs
+          .replace(/\n/g, "<br>");        // Single newlines become line breaks
+        
+        const formattedHtml = safeHtml.includes("</p>") 
+          ? `<p>${safeHtml}</p>` 
+          : safeHtml;
+        
+        messagesDiv.innerHTML += `<div class="msg bot"><strong>${copy.botLabel}:</strong> ${formattedHtml}</div>`;
+        scrollToBottom();
+      }
+
+      function updateLanguageUI() {
+        const copy = getCopy();
+        userInput.placeholder = copy.placeholder;
+        sendButton.textContent = copy.sendButton;
+        languageLabel.textContent = copy.languageLabel;
+        assistantStatusText.textContent = copy.statusText;
+        suggestionButtons.forEach((button, index) => {
+          const basePrompt = button.dataset.prompt || "";
+          const localized = copy.suggestions[index];
+          button.textContent = localized || basePrompt;
+        });
+      }
+
+      languageSelect.addEventListener("change", async () => {
+        currentLanguage = languageSelect.value;
+        localStorage.setItem('smartFarmLanguage', currentLanguage);
+        updateLanguageUI();
+        await appendBotMessage(getCopy().languageChangedMessage, { translate: false });
+      });
+
+      suggestionButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const suggestionText = button.textContent.trim();
+          if (!suggestionText) return;
+          userInput.value = suggestionText;
+          sendMessage();
+        });
+      });
+
+      async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        appendUserMessage(message);
+        userInput.value = "";
+        sendButton.disabled = true;
+        sendButton.textContent = "Sending...";
+
+        const normalized = message.toLowerCase();
+        let loadingId = null;
+
+        // Simple greeting check - all other queries go to Gemini
+        if (GREETINGS.includes(normalized)) {
+          await appendBotMessage("Hello! How can I help you today?");
+          sendButton.disabled = false;
+          sendButton.textContent = getCopy().sendButton;
+          return;
+        }
+
+        // Show loading indicator
+        loadingId = showLoadingIndicator();
+
+        // Send message to backend
+        try {
+          const res = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: message,
+              language: currentLanguage,
+              use_farm_context: true
+            })
+          });
+
+          if (!res.ok) {
+            let errorData = {};
+            try {
+              errorData = await res.json();
+            } catch (e) {
+              // Silent error handling
+            }
+            
+            // Remove loading indicator
+            if (loadingId) {
+              removeLoadingIndicator(loadingId);
+              loadingId = null;
+            }
+            
+            if (res.status === 400) {
+              await appendBotMessage("I couldn't understand that. Could you please rephrase your question?");
+            } else if (res.status === 500) {
+              await appendBotMessage("I'm having trouble processing that right now. Please try again in a moment.");
+            } else if (res.status === 0 || res.status === 503) {
+              await appendBotMessage("I'm currently unavailable. Please check your connection and try again.");
+            } else {
+              await appendBotMessage("Something went wrong. Please try again later.");
+            }
+            return;
+          }
+
+          const data = await res.json();
+          
+          // Remove loading indicator
+          if (loadingId) {
+            removeLoadingIndicator(loadingId);
+            loadingId = null;
+          }
+          
+          if (data.success) {
+            const reply = data.message || "I'm sorry, I couldn't generate a response. Please try again.";
+            await appendBotMessage(reply);
+          } else {
+            await appendBotMessage("I'm having trouble understanding that. Could you please rephrase your question?");
+          }
+        } catch (error) {
+          // Remove loading indicator
+          if (loadingId) {
+            removeLoadingIndicator(loadingId);
+            loadingId = null;
+          }
+          
+          if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+            await appendBotMessage("I'm having trouble connecting. Please check your internet connection and try again.");
+          } else {
+            await appendBotMessage("Something went wrong. Please try again.");
+          }
+        } finally {
+          sendButton.disabled = false;
+          sendButton.textContent = getCopy().sendButton;
+        }
+      }
+
+      window.sendMessage = sendMessage;
+
+      userInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      updateLanguageUI();
+      
+      // Check backend connection on page load
+      async function checkBackendConnection() {
+        try {
+          const res = await fetch(HEALTH_API_URL);
+          if (res.ok) {
+            const copy = getCopy();
+            assistantStatusText.textContent = copy.statusText;
+            document.querySelector(".status-dot").classList.add("online");
+            document.querySelector(".status-dot").classList.remove("offline");
+          } else {
+            assistantStatusText.textContent = "Connecting...";
+            document.querySelector(".status-dot").classList.remove("online");
+            document.querySelector(".status-dot").classList.add("offline");
+          }
+        } catch (error) {
+          assistantStatusText.textContent = "Connecting...";
+          document.querySelector(".status-dot").classList.remove("online");
+          document.querySelector(".status-dot").classList.add("offline");
+        }
+      }
+      
+      // Initialize and check connection
+      checkBackendConnection();
+    </script>
+  </body>
+</html>
+
