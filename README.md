@@ -1,5 +1,5 @@
---Contributers
+# Contributers
 - **Kartik Desai**
 - **Preetam B Sansuddi**
-- **Jeevan D**
+- **Hridik Thejus K**
 - **MD RIYAN**
