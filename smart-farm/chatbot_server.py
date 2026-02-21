@@ -25,7 +25,7 @@ COW_URL  = "https://docs.google.com/spreadsheets/d/1OD7NOyFsxzrvicub3b3ykStKDWPT
 # GEMINI API
 # -----------------------------------------------------
 
-GEMINI_API_KEY = "AIzaSyCQYXgxGQ6az1M_I9TY7DT92aSfpoSYdN0"  
+GEMINI_API_KEY = "xxxxxxxxxxxxxxxxxxx"  
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
