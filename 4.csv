@@ -1,0 +1,60 @@
+Temparature,Humidity ,Moisture,Crop Type,Nitrogen,Potassium,Phosphorous,Fertilizer Name
+34,65,62,Cotton,7,9,30,NPK
+32,62,34,Tobacco,22,0,20,NPK
+26,52,35,Barley,12,10,13,NPK
+25,50,64,Cotton,9,0,10,NPK
+30,60,42,Millets,21,0,18,NPK
+29,58,33,Oil seeds,9,7,30,NPK
+31,62,48,Maize,14,15,12,NPK
+32,62,41,Paddy,24,0,22,NPK
+31,62,49,Sugarcane,10,13,14,NPK
+25,50,39,Barley,21,0,19,NPK
+30,60,44,Millets,10,0,9,NPK
+34,65,53,Sugarcane,12,14,12,NPK
+33,64,39,Paddy,13,0,10,NPK
+26,52,44,Maize,23,0,20,NPK
+30,60,63,Cotton,9,9,29,NPK
+26,52,36,Pulses,14,0,13,NPK
+29,58,40,Ground Nuts,24,0,23,NPK
+36,68,38,Barley,7,9,30,NPK
+26,52,48,Wheat,23,0,19,NPK
+30,60,61,Cotton,8,10,31,NPK
+25,50,26,Ground Nuts,15,14,11,NPK
+27,54,30,Pulses,13,0,13,NPK
+30,60,58,Sugarcane,10,7,32,NPK
+32,62,34,Tobacco,22,0,24,NPK
+38,70,48,Wheat,8,8,28,NPK
+26,52,32,Oil seeds,12,0,8,NPK
+29,58,43,Paddy,24,0,18,NPK
+33,64,51,Maize,5,9,29,NPK
+34,65,31,Tobacco,23,0,21,NPK
+36,68,33,Oil seeds,13,0,14,NPK
+31,62,63,Cotton,11,12,15,NPK
+27,53,43,Millets,23,0,24,NPK
+29,58,37,Millets,8,0,15,NPK
+25,50,56,Sugarcane,11,13,15,NPK
+30,60,49,Wheat,13,0,9,NPK
+34,65,64,Cotton,24,0,20,NPK
+28,54,47,Barley,5,18,15,NPK
+34,65,57,Sugarcane,9,0,13,NPK
+29,58,55,Sugarcane,8,8,33,NPK
+25,50,40,Pulses,6,19,16,NPK
+30,60,38,Millets,10,0,14,NPK
+26,52,39,Pulses,21,0,23,NPK
+34,65,48,Wheat,23,0,19,NPK
+29,58,42,Paddy,9,10,22,NPK
+30,60,47,Maize,22,0,21,NPK
+27,53,59,Sugarcane,10,0,15,NPK
+26,52,36,Pulses,7,16,20,NPK
+28,54,43,Paddy,10,8,29,NPK
+26,52,59,Sugarcane,11,0,9,NPK
+31,62,44,Barley,21,0,28,NPK
+35,67,28,Pulses,8,7,31,NPK
+29,58,30,Tobacco,13,17,16,NPK
+36,68,50,Wheat,12,18,19,NPK
+30,60,26,Oil seeds,8,9,30,NPK
+34,65,45,Paddy,6,19,21,NPK
+28,54,25,Maize,9,10,30,NPK
+25,50,32,Pulses,24,0,19,NPK
+30,60,27,Tobacco,4,17,17,NPK
+29,58,57,Sugarcane,12,0,10,NPK
