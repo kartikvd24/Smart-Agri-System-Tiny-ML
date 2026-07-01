@@ -77,15 +77,25 @@ The objective of this project is to develop a smart agricultural monitoring syst
 
 # 📷 Project Media
 
-<img width="770" height="544" alt="WhatsApp Image 2026-07-01 at 15 20 22 (1)" src="https://github.com/user-attachments/assets/c9e3e9d1-bfdc-4251-b90f-5e170f6d1baa" />
-<img width="738" height="615" alt="WhatsApp Image 2026-07-01 at 15 20 22" src="https://github.com/user-attachments/assets/2706fbc2-e570-4105-b366-21cac3b100dc" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c9e3e9d1-bfdc-4251-b90f-5e170f6d1baa" width="500">
+</p>
 
-<img width="1280" height="960" alt="WhatsApp Image 2026-07-01 at 15 20 21" src="https://github.com/user-attachments/assets/361bd4ad-5d53-4b07-88e5-ffd53228949c" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2706fbc2-e570-4105-b366-21cac3b100dc" width="500">
+</p>
 
-<img width="557" height="242" alt="image" src="https://github.com/user-attachments/assets/07507fe9-4db6-4d83-84f0-5c7a770e9f33" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/361bd4ad-5d53-4b07-88e5-ffd53228949c" width="700">
+</p>
 
-<img width="1280" height="604" alt="WhatsApp Image 2026-07-01 at 15 25 55" src="https://github.com/user-attachments/assets/ba8e8268-c0f1-46a3-af91-3f4302fd182a" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/07507fe9-4db6-4d83-84f0-5c7a770e9f33" width="450">
+</p>
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ba8e8268-c0f1-46a3-af91-3f4302fd182a" width="700">
+</p>
 The repository contains the complete implementation of the Smart Agriculture System including:
 
 - Hardware Setup Images
