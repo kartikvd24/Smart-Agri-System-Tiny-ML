@@ -8,7 +8,7 @@
 ![Firebase](https://img.shields.io/badge/Firebase-Realtime%20Database-yellow)
 ![Edge Impulse](https://img.shields.io/badge/Edge%20Impulse-TinyML-red)
 ![Python](https://img.shields.io/badge/Python-Backend-blue)
-![License](https://img.shields.io/badge/License-MIT-success)
+
 
 </p>
 
