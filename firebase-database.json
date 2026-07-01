@@ -1,0 +1,89 @@
+{
+  "farms": {
+    "farm-001": {
+      "animals": {
+        "cow-001": {
+          "latest": {
+            "bpm": 65,
+            "distance_m": 120,
+            "inFence": 1,
+            "lat": 12.909132,
+            "lng": 77.564781,
+            "milkGas": 80,
+            "milkPh": 6.4,
+            "milkTemp": 4.5,
+            "temp": 34,
+            "timestamp": "2026-05-07T10:20:49Z"
+          }
+        }
+      },
+      "cow": {
+        "latest": {
+          "bodyTemp": 30.7,
+          "bpm": 64,
+          "distance_m": 405.7,
+          "gpsFix": 0,
+          "inFence": 0,
+          "lat": 12.90788,
+          "lng": 77.565689,
+          "timestamp": "2026-05-23T04:51:47Z"
+        },
+        "lcdData": {
+          "latest": {
+            "fertilizer": "UREA",
+            "k": 41,
+            "moisture": 95,
+            "n": 80,
+            "p": 34,
+            "ph": 5.2,
+            "recommendation": "USE NPK",
+            "temp": 28
+          }
+        }
+      },
+      "milk": {
+        "latest": {
+          "mq": 65,
+          "ph": 5.69,
+          "spoiled": 1,
+          "state": "Spoiled",
+          "timestamp": "2026-05-23T04:50:41Z"
+        }
+      },
+      "processedData": {
+        "latest": {
+          "fertilizerPrediction": {
+            "confidence": 62.10938,
+            "recommendation": "Use DAP",
+            "timestamp": "2026-05-07T17:54:50Z",
+            "type": "DAP"
+          }
+        }
+      },
+      "soil": {
+        "latest": {
+          "moisture": 3.3,
+          "nitrogen": 47,
+          "ph": 5.2,
+          "phosphorus": 30,
+          "potassium": 56,
+          "temperature": 24.6,
+          "timestamp": "2026-05-23T04:51:46Z"
+        }
+      },
+      "soilNodes": {
+        "soil-node-01": {
+          "latest": {
+            "k": 55,
+            "moisture": 21.9,
+            "n": 51,
+            "p": 30,
+            "ph": 6,
+            "temp_c": 27.1,
+            "timestamp": "2026-05-23T04:46:16Z"
+          }
+        }
+      }
+    }
+  }
+}
